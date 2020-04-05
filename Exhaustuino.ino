@@ -26,7 +26,11 @@
 #define IC12_COLD 6 //Cold sensor data
 #define IC14_HOT 8 //Hot sensor data
 #define IC5_LED 3 //status LED 
-#define IC2_FANPWR 0 //Turn fan
+#if DEBUG
+#define IC2_FANPWR 10 //Turn fan
+#else
+#define IC2_FANPWR 0
+#endif
 #define IC4_FANMON 2 //Fan monitor
     
 DSTempReader  dsHot(IC14_HOT);  
@@ -38,8 +42,8 @@ bool fanNotResponding = false;
 
 #define MIN_FAN_PULSES 15
 
-#define FAN_GRACE_ON 5*60*1000
-#define FAN_GRACE_OFF 5*60*1000
+#define FAN_GRACE_ON 5ul*60ul*1000ul
+#define FAN_GRACE_OFF 5ul*60ul*1000ul
 
 struct HotColdTemps {
   float hotTemp;
@@ -242,6 +246,9 @@ void loop(void) {
     while(!fanNotResponding) {
       fanMonitor();
       if ((millis() - fanOnAt) > FAN_GRACE_OFF) {
+        #if DEBUG
+        Serial.println(F("GRACE OFF period ended"));
+        #endif
         readTemps(temps);
         for (int tryn = 1; (!temps.coldOk || !temps.hotOk) && tryn < 10; tryn++) {
           myDelayPulsing(60);
@@ -253,6 +260,11 @@ void loop(void) {
           break;
         } 
       }
+      #if DEBUG
+      else {
+        Serial.println(F("Still in GRACE OFF period"));
+      }
+      #endif
     }
     if(fanNotResponding) {
       turnOffFan();
