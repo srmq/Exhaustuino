@@ -107,17 +107,25 @@ bool tempDiffFire(const HotColdTemps &temps) {
   bool result = false;
 
   if (temps.coldOk && temps.hotOk) {
-    float highTemp, lowTemp;
-    if (temps.hotTemp > temps.coldTemp) {
-      highTemp = temps.hotTemp;
-      lowTemp = temps.coldTemp;
-    } else {
-      highTemp = temps.coldTemp;
-      lowTemp = temps.hotTemp;
-    }
-    if ((highTemp - lowTemp) > TEMP_DIFF) {
-      result = true;
-    }
+    #if SYMMETRIC_SENSORS
+      float highTemp, lowTemp;
+      if (temps.hotTemp > temps.coldTemp) {
+        highTemp = temps.hotTemp;
+        lowTemp = temps.coldTemp;
+      } else {
+        highTemp = temps.coldTemp;
+        lowTemp = temps.hotTemp;
+      }
+      if ((highTemp - lowTemp) > TEMP_DIFF) {
+        result = true;
+      }
+    #else
+      if (temps.hotTemp > temps.coldTemp) {
+        if ((temps.hotTemp - temps.coldTemp) > TEMP_DIFF) {
+          result = true;
+        }
+      }
+    #endif
   }
   
   return result;
